@@ -75,11 +75,11 @@ func main() {
 	templates := ginmulate.New(mlt, log)
 	templates.Route("", router)
 
-	templates.FuncHandler = FuncHandler
+	templates.FuncHandler = funcHandler
 	router.Run(cfg.Addr)
 }
 
-func FuncHandler(ctx *gin.Context, funcs template.FuncMap) template.FuncMap {
+func funcHandler(ctx *gin.Context, funcs template.FuncMap) template.FuncMap {
 	funcs["param"] = func(key string) string { return ctx.Param(key) }
 	funcs["data"] = func() interface{} {
 		return data
