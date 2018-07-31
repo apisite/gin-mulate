@@ -50,10 +50,16 @@ func main() {
 	}
 	log := mapper.NewLogger(l)
 
-	mlt, _ := mulate.New(cfg.Template, log)
-	mlt.DisableCache(true)
+	mlt := mulate.New(cfg.Template)
+	mlt.DisableCache(gin.IsDebugging())
 
 	allFuncs := make(template.FuncMap, 0)
+	allFuncs["HTML"] = func(s string) template.HTML {
+		return template.HTML(s)
+	}
+	allFuncs["data"] = func() interface{} {
+		return nil
+	}
 	err = mlt.LoadTemplates(allFuncs)
 	if err != nil {
 		log.Fatal(err)
@@ -69,5 +75,14 @@ func main() {
 	templates := ginmulate.New(mlt, log)
 	templates.Route("", router)
 
+	templates.FuncHandler = FuncHandler
 	router.Run(cfg.Addr)
+}
+
+func FuncHandler(ctx *gin.Context, funcs template.FuncMap) template.FuncMap {
+	funcs["param"] = func(key string) string { return ctx.Param(key) }
+	funcs["data"] = func() interface{} {
+		return data
+	}
+	return funcs
 }

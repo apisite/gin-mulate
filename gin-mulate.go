@@ -16,24 +16,28 @@ import (
 const EngineKey = "github.com/apisite/mulate"
 
 type Engine struct {
-	log loggers.Contextual
-	mlt *mulate.Template
+	FuncHandler func(ctx *gin.Context, funcs template.FuncMap) template.FuncMap
+	log         loggers.Contextual
+	mlt         *mulate.Template
 }
 
 func New(mlt *mulate.Template, log loggers.Contextual) *Engine {
 	rv := Engine{
-		mlt: mlt,
-		log: log,
+		FuncHandler: FuncHandler,
+		mlt:         mlt,
+		log:         log,
 	}
 	return &rv
 }
 
+// Middleware stores Engine in gin context
 func (e *Engine) Middleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		ctx.Set(EngineKey, e)
 	}
 }
 
+// Route registers template routes into gin
 func (e *Engine) Route(prefix string, r *gin.Engine) {
 	if prefix != "" {
 		prefix = prefix + "/"
@@ -47,6 +51,7 @@ func (e *Engine) Route(prefix string, r *gin.Engine) {
 	}
 }
 
+// handleHTML returns gin page handler
 func (e *Engine) handleHTML(uri string) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		if val, ok := ctx.Get(EngineKey); ok {
@@ -60,8 +65,8 @@ func (e *Engine) handleHTML(uri string) gin.HandlerFunc {
 }
 
 func (e *Engine) HTML(ctx *gin.Context, uri string) {
-	allFuncs := make(template.FuncMap, 0)
-	p, err := e.mlt.RenderPage(uri, allFuncs)
+	funcs := (e.FuncHandler)(ctx, e.mlt.Funcs)
+	p, err := e.mlt.RenderPage(uri, funcs, ctx.Request)
 	if err != nil {
 		if p.Status == http.StatusMovedPermanently || p.Status == http.StatusFound {
 			ctx.Redirect(p.Status, p.Title)
@@ -75,4 +80,9 @@ func (e *Engine) HTML(ctx *gin.Context, uri string) {
 	}
 	renderer := mulate.NewRenderer(e.mlt, p)
 	ctx.Render(p.Status, renderer)
+}
+
+func FuncHandler(ctx *gin.Context, funcs template.FuncMap) template.FuncMap {
+	funcs["param"] = func(key string) string { return ctx.Param(key) }
+	return funcs
 }
