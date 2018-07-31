@@ -13,14 +13,17 @@ import (
 	"github.com/apisite/mulate" // TODO: change to interface
 )
 
+// EngineKey holds gin context key name for engine storage
 const EngineKey = "github.com/apisite/mulate"
 
+// Engine holds template engine attributes
 type Engine struct {
 	FuncHandler func(ctx *gin.Context, funcs template.FuncMap) template.FuncMap
 	log         loggers.Contextual
 	mlt         *mulate.Template
 }
 
+// New creates engine object
 func New(mlt *mulate.Template, log loggers.Contextual) *Engine {
 	rv := Engine{
 		FuncHandler: FuncHandler,
@@ -64,6 +67,7 @@ func (e *Engine) handleHTML(uri string) gin.HandlerFunc {
 	}
 }
 
+// HTML renders page for given uri
 func (e *Engine) HTML(ctx *gin.Context, uri string) {
 	funcs := (e.FuncHandler)(ctx, e.mlt.Funcs)
 	p, err := e.mlt.RenderPage(uri, funcs, ctx.Request)
@@ -82,6 +86,7 @@ func (e *Engine) HTML(ctx *gin.Context, uri string) {
 	ctx.Render(p.Status, renderer)
 }
 
+// FuncHandler is a sample of passing functions to templates
 func FuncHandler(ctx *gin.Context, funcs template.FuncMap) template.FuncMap {
 	funcs["param"] = func(key string) string { return ctx.Param(key) }
 	return funcs
