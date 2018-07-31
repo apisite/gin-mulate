@@ -14,12 +14,14 @@
 [gl1]: https://img.shields.io/github/license/apisite/gin-mulate.svg
 [gl2]: LICENSE
 
+Differences from [mulate](https://github.com/apisite/mulate) library:
+* [gin](https://github.com/gin-gonic/gin) support
+* URL params support (via gin)
 
 ## Usage
 
 ```go
-    mlt, _ := mulate.New(cfg.Template, log)
-    mlt.DisableCache(true)
+    mlt, _ := mulate.New(cfg.Template)
 
     allFuncs := make(template.FuncMap, 0)
     err = mlt.LoadTemplates(allFuncs)
@@ -30,15 +32,29 @@
     router := gin.Default()
     templates := ginmulate.New(mlt, log)
     templates.Route("", router)
+    router.Run(cfg.Addr)
 ```
 
-See also: [sample](sample/)
+### URL params support
+
+in file `tmpl/page/my/:id/hello.tmpl`:
+```
+{{ param "id" }}
+```
+
+### See also
+
+* [sample](sample/)
+* [mulate](https://github.com/apisite/mulate)
 
 ## TODO
 
-* [ ] rpc
-* [ ] test coverage
-* [ ] docs
+* [ ] docs, part 1
+* [ ] tests, part 1
+* [ ] google and ask reddit for analogs
+* [ ] tests, part 2
+* [ ] docs, part 2
+* [ ] release
 
 ## See also
 
