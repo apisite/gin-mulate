@@ -56,7 +56,7 @@ in file `tmpl/page/my/:id/hello.tmpl`:
 * [ ] docs, part 2
 * [ ] release
 
-## See also
+## Similar projects
 
 * https://github.com/gin-contrib/multitemplate
 
