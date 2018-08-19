@@ -42,6 +42,12 @@ in file `tmpl/page/my/:id/hello.tmpl`:
 {{ param "id" }}
 ```
 
+### Request object support
+
+```
+{{ $id := .Request.URL.Query.Get "id" }}
+```
+
 ### See also
 
 * [sample](sample/)

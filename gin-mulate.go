@@ -16,78 +16,86 @@ import (
 // EngineKey holds gin context key name for engine storage
 const EngineKey = "github.com/apisite/mulate"
 
-// Engine holds template engine attributes
-type Engine struct {
-	FuncHandler func(ctx *gin.Context, funcs template.FuncMap) template.FuncMap
-	log         loggers.Contextual
-	mlt         *mulate.Template
+type Config struct {
+	mulate.Config
 }
 
-// New creates engine object
-func New(mlt *mulate.Template, log loggers.Contextual) *Engine {
-	rv := Engine{
-		FuncHandler: FuncHandler,
-		mlt:         mlt,
-		log:         log,
-	}
-	return &rv
+// Engine holds template engine attributes
+type Template struct {
+	*mulate.Template
+	FuncHandler func(ctx *gin.Context, funcs template.FuncMap)
+	log         loggers.Contextual
+	config      Config
+}
+
+func New(cfg Config, log loggers.Contextual) *Template {
+	return &Template{Template: mulate.New(cfg.Config), config: cfg}
 }
 
 // Middleware stores Engine in gin context
-func (e *Engine) Middleware() gin.HandlerFunc {
+func (tmpl *Template) Middleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		ctx.Set(EngineKey, e)
+		ctx.Set(EngineKey, tmpl)
 	}
 }
 
 // Route registers template routes into gin
-func (e *Engine) Route(prefix string, r *gin.Engine) {
+func (tmpl *Template) Route(prefix string, r *gin.Engine) {
 	if prefix != "" {
 		prefix = prefix + "/"
 	}
 
 	// we need this before page registering
-	r.Use(e.Middleware())
+	r.Use(tmpl.Middleware())
 
-	for _, p := range e.mlt.Pages() {
-		r.GET(prefix+p, e.handleHTML(p)) // TODO: map[content-type]Pages
+	for _, p := range tmpl.Pages() {
+		r.GET(prefix+p, tmpl.handleHTML(p)) // TODO: map[content-type]Pages
 	}
 }
 
 // handleHTML returns gin page handler
-func (e *Engine) handleHTML(uri string) gin.HandlerFunc {
+func (tmpl *Template) handleHTML(uri string) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		if val, ok := ctx.Get(EngineKey); ok {
-			if e, ok := val.(*Engine); ok {
-				e.HTML(ctx, uri)
+			if t, ok := val.(*Template); ok {
+				t.HTML(ctx, uri)
 				return
 			}
 		}
-		e.log.Error("Context without valid engine key", EngineKey)
+		tmpl.log.Error("Context without valid engine key", EngineKey)
 	}
 }
 
 // HTML renders page for given uri
-func (e *Engine) HTML(ctx *gin.Context, uri string) {
-	funcs := (e.FuncHandler)(ctx, e.mlt.Funcs)
-	p, err := e.mlt.RenderPage(uri, funcs, ctx.Request)
+func (tmpl *Template) HTML(ctx *gin.Context, uri string) {
+	funcs := make(template.FuncMap, 0)
+	// Get funcMap copy
+	for k, v := range tmpl.Funcs {
+		funcs[k] = v
+	}
+	FuncHandler(ctx, funcs)
+	if tmpl.FuncHandler != nil {
+		(tmpl.FuncHandler)(ctx, funcs)
+	}
+	p, err := tmpl.RenderPage(uri, funcs, ctx.Request)
 	if err != nil {
 		if p.Status == http.StatusMovedPermanently || p.Status == http.StatusFound {
 			ctx.Redirect(p.Status, p.Title)
 			return
 		}
-		e.log.Debugf("page error: (%+v)", err)
+		tmpl.log.Debugf("page error: (%+v)", err)
 		if p.Status == http.StatusOK {
 			p.Status = http.StatusInternalServerError
 			p.Raise(p.Status, "Internal", err.Error(), false)
 		}
 	}
-	renderer := mulate.NewRenderer(e.mlt, p)
+	renderer := mulate.NewRenderer(tmpl.Template, p)
+	ctx.Header("Content-Type", p.ContentType)
+
 	ctx.Render(p.Status, renderer)
 }
 
 // FuncHandler is a sample of passing functions to templates
-func FuncHandler(ctx *gin.Context, funcs template.FuncMap) template.FuncMap {
+func FuncHandler(ctx *gin.Context, funcs template.FuncMap) {
 	funcs["param"] = func(key string) string { return ctx.Param(key) }
-	return funcs
 }
