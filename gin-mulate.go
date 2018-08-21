@@ -29,7 +29,7 @@ type Template struct {
 }
 
 func New(cfg Config, log loggers.Contextual) *Template {
-	return &Template{Template: mulate.New(cfg.Config), config: cfg}
+	return &Template{Template: mulate.New(cfg.Config), config: cfg, log: log}
 }
 
 // Middleware stores Engine in gin context
