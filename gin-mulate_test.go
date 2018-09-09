@@ -5,61 +5,56 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/apisite/mulate"
 	"github.com/gin-gonic/gin"
 	"gopkg.in/birkirb/loggers.v1"
 )
 
 func TestNew(t *testing.T) {
 	type args struct {
-		mlt *mulate.Template
+		cfg Config
 		log loggers.Contextual
 	}
 	tests := []struct {
 		name string
 		args args
-		want *Engine
+		want *Template
 	}{
-	// TODO: Add test cases.
+		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
-		if got := New(tt.args.mlt, tt.args.log); !reflect.DeepEqual(got, tt.want) {
+		if got := New(tt.args.cfg, tt.args.log); !reflect.DeepEqual(got, tt.want) {
 			t.Errorf("%q. New() = %v, want %v", tt.name, got, tt.want)
 		}
 	}
 }
 
+type fields struct {
+	FuncHandler func(ctx *gin.Context, funcs template.FuncMap)
+	log         loggers.Contextual
+	cfg         Config
+}
+
 func TestEngine_Middleware(t *testing.T) {
-	type fields struct {
-		FuncHandler func(ctx *gin.Context, funcs template.FuncMap) template.FuncMap
-		log         loggers.Contextual
-		mlt         *mulate.Template
-	}
 	tests := []struct {
 		name   string
 		fields fields
 		want   gin.HandlerFunc
 	}{
-	// TODO: Add test cases.
+		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
-		e := &Engine{
+		e := &Template{
 			FuncHandler: tt.fields.FuncHandler,
 			log:         tt.fields.log,
-			mlt:         tt.fields.mlt,
+			config:      tt.fields.cfg,
 		}
 		if got := e.Middleware(); !reflect.DeepEqual(got, tt.want) {
-			t.Errorf("%q. Engine.Middleware() = %v, want %v", tt.name, got, tt.want)
+			t.Errorf("%q. Template.Middleware() = %v, want %v", tt.name, got, tt.want)
 		}
 	}
 }
 
 func TestEngine_Route(t *testing.T) {
-	type fields struct {
-		FuncHandler func(ctx *gin.Context, funcs template.FuncMap) template.FuncMap
-		log         loggers.Contextual
-		mlt         *mulate.Template
-	}
 	type args struct {
 		prefix string
 		r      *gin.Engine
@@ -69,24 +64,20 @@ func TestEngine_Route(t *testing.T) {
 		fields fields
 		args   args
 	}{
-	// TODO: Add test cases.
+		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
-		e := &Engine{
+		e := &Template{
 			FuncHandler: tt.fields.FuncHandler,
 			log:         tt.fields.log,
-			mlt:         tt.fields.mlt,
+			config:      tt.fields.cfg,
 		}
 		e.Route(tt.args.prefix, tt.args.r)
 	}
 }
 
 func TestEngine_handleHTML(t *testing.T) {
-	type fields struct {
-		FuncHandler func(ctx *gin.Context, funcs template.FuncMap) template.FuncMap
-		log         loggers.Contextual
-		mlt         *mulate.Template
-	}
+
 	type args struct {
 		uri string
 	}
@@ -96,26 +87,21 @@ func TestEngine_handleHTML(t *testing.T) {
 		args   args
 		want   gin.HandlerFunc
 	}{
-	// TODO: Add test cases.
+		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
-		e := &Engine{
+		e := &Template{
 			FuncHandler: tt.fields.FuncHandler,
 			log:         tt.fields.log,
-			mlt:         tt.fields.mlt,
+			config:      tt.fields.cfg,
 		}
 		if got := e.handleHTML(tt.args.uri); !reflect.DeepEqual(got, tt.want) {
-			t.Errorf("%q. Engine.handleHTML() = %v, want %v", tt.name, got, tt.want)
+			t.Errorf("%q. Template.handleHTML() = %v, want %v", tt.name, got, tt.want)
 		}
 	}
 }
 
 func TestEngine_HTML(t *testing.T) {
-	type fields struct {
-		FuncHandler func(ctx *gin.Context, funcs template.FuncMap) template.FuncMap
-		log         loggers.Contextual
-		mlt         *mulate.Template
-	}
 	type args struct {
 		ctx *gin.Context
 		uri string
@@ -125,13 +111,13 @@ func TestEngine_HTML(t *testing.T) {
 		fields fields
 		args   args
 	}{
-	// TODO: Add test cases.
+		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
-		e := &Engine{
+		e := &Template{
 			FuncHandler: tt.fields.FuncHandler,
 			log:         tt.fields.log,
-			mlt:         tt.fields.mlt,
+			config:      tt.fields.cfg,
 		}
 		e.HTML(tt.args.ctx, tt.args.uri)
 	}
@@ -147,10 +133,11 @@ func TestFuncHandler(t *testing.T) {
 		args args
 		want template.FuncMap
 	}{
-	// TODO: Add test cases.
+		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
-		if got := FuncHandler(tt.args.ctx, tt.args.funcs); !reflect.DeepEqual(got, tt.want) {
+		FuncHandler(tt.args.ctx, tt.args.funcs)
+		if got := tt.args.funcs; !reflect.DeepEqual(got, tt.want) {
 			t.Errorf("%q. FuncHandler() = %v, want %v", tt.name, got, tt.want)
 		}
 	}
