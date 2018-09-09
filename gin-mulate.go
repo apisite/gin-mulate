@@ -16,11 +16,12 @@ import (
 // EngineKey holds gin context key name for engine storage
 const EngineKey = "github.com/apisite/mulate"
 
+// Config holds mulate config vrs
 type Config struct {
 	mulate.Config
 }
 
-// Engine holds template engine attributes
+// Template holds template engine attributes
 type Template struct {
 	*mulate.Template
 	FuncHandler func(ctx *gin.Context, funcs template.FuncMap)
@@ -28,6 +29,7 @@ type Template struct {
 	config      Config
 }
 
+// New returns mulate template object
 func New(cfg Config, log loggers.Contextual) *Template {
 	return &Template{Template: mulate.New(cfg.Config), config: cfg, log: log}
 }
