@@ -1,5 +1,5 @@
 # gin-mulate
-> [gin](https://github.com/gin-gonic/gin) bindings for [mulate](https://github.com/apisite/mulate) library
+> [gin](https://github.com/gin-gonic/gin) bindings for [mulate](https://github.com/apisite/mulate) package
 
 [![GoCard][gc1]][gc2]
  [![GitHub Release][gr1]][gr2]
@@ -14,7 +14,7 @@
 [gl1]: https://img.shields.io/github/license/apisite/gin-mulate.svg
 [gl2]: LICENSE
 
-Differences from [mulate](https://github.com/apisite/mulate) library:
+Differences from [mulate](https://github.com/apisite/mulate):
 * [gin](https://github.com/gin-gonic/gin) support
 * URL params support (via gin)
 
@@ -39,11 +39,12 @@ Differences from [mulate](https://github.com/apisite/mulate) library:
 
 in file `tmpl/page/my/:id/hello.tmpl`:
 ```
-{{ param "id" }}
+{{ $id := param "id" }}
 ```
 
-### Request object support
+### Request argument support
 
+if request has argument `id` (?id=XX) it's value available via
 ```
 {{ $id := .Request.URL.Query.Get "id" }}
 ```
